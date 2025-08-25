@@ -3,4 +3,6 @@ An interactive source code review lab. Look at a snippet, decide if it’s **Sec
 
 ## Run locally
 ```bash
+git clone https://github.com/Rahman063/secure-or-sus.git
+cd secure-or-sus
 php -S localhost:8000
