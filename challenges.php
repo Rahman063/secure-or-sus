@@ -35,7 +35,7 @@ return [
     // 3. Secure Prepared Statement
     [
         "id" => "sql-injection-3",
-        "title" => "SQL Injection - Prepared Statement (Secure)",
+        "title" => "SQL Injection - Prepared Statement",
         "category" => "SQL Injection",
         "difficulty" => "Beginner",
         "snippet" => "<?php
