@@ -1,0 +1,23 @@
+# Logs
+*.log
+*.tmp
+*.bak
+
+# Environment & credentials
+.env
+.env.local
+
+# Composer dependencies
+/vendor/
+
+# Node.js dependencies
+/node_modules/
+
+# IDE/editor junk
+.vscode/
+.idea/
+*.swp
+
+# OS junk
+.DS_Store
+Thumbs.db
