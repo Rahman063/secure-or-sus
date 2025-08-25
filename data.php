@@ -120,3 +120,6 @@ $stmt = $pdo->prepare("SELECT * FROM products WHERE id IN ($placeholders)");
 $stmt->execute($ids);'
   ],
 ];
+
+header("Content-Type: application/json");
+echo json_encode($challenges, JSON_PRETTY_PRINT);
