@@ -1,6 +1,7 @@
 <?php
-// challenges.php (SQL Injection section)
 return [
+
+    // ------------------- SQL Injection Challenges -------------------
 
     // 1. Classic Login Bypass
     [
@@ -147,6 +148,150 @@ mysqli_multi_query(\$conn, \"SELECT * FROM users WHERE id=\$id; DELETE FROM logs
 ?>",
         "correct" => "vulnerable",
         "answer" => "Input is unsanitized and can be abused with UNION SELECT injection."
+    ],
+
+
+    // ------------------- XSS Challenges -------------------
+
+    // 1. Basic Reflected XSS
+    [
+        "id" => "xss-1",
+        "title" => "XSS - Reflected Alert",
+        "category" => "XSS",
+        "difficulty" => "Beginner",
+        "snippet" => "<?php
+\$name = \$_GET['name'];
+echo \"Hello \$name!\";
+?>",
+        "correct" => "vulnerable",
+        "answer" => "User input is directly echoed without escaping, allowing JavaScript injection."
+    ],
+
+    // 2. Basic Stored XSS
+    [
+        "id" => "xss-2",
+        "title" => "XSS - Stored Comment",
+        "category" => "XSS",
+        "difficulty" => "Beginner",
+        "snippet" => "<?php
+\$comment = \$_POST['comment'];
+file_put_contents('comments.txt', \$comment.PHP_EOL, FILE_APPEND);
+echo file_get_contents('comments.txt');
+?>",
+        "correct" => "vulnerable",
+        "answer" => "Comments are stored and displayed without sanitization, allowing persistent XSS."
+    ],
+
+    // 3. Input in HTML Attribute
+    [
+        "id" => "xss-3",
+        "title" => "XSS - Input in Attribute",
+        "category" => "XSS",
+        "difficulty" => "Beginner",
+        "snippet" => "<?php
+\$url = \$_GET['url'];
+echo \"<a href='\$url'>Click here</a>\";
+?>",
+        "correct" => "vulnerable",
+        "answer" => "User input inside HTML attribute without escaping can inject JavaScript using quotes."
+    ],
+
+    // 4. Secure Output with htmlspecialchars
+    [
+        "id" => "xss-4",
+        "title" => "XSS - Escaped Output",
+        "category" => "XSS",
+        "difficulty" => "Beginner",
+        "snippet" => "<?php
+\$msg = \$_GET['msg'];
+echo htmlspecialchars(\$msg, ENT_QUOTES, 'UTF-8');
+?>",
+        "correct" => "secure",
+        "answer" => "User input is escaped properly with htmlspecialchars, preventing XSS."
+    ],
+
+    // 5. JavaScript Context Injection
+    [
+        "id" => "xss-5",
+        "title" => "XSS - JS Context Injection",
+        "category" => "XSS",
+        "difficulty" => "Intermediate",
+        "snippet" => "<?php
+\$name = \$_GET['name'];
+echo \"<script>var user='\$name';</script>\";
+?>",
+        "correct" => "vulnerable",
+        "answer" => "User input directly inside JavaScript context allows injection of arbitrary scripts."
+    ],
+
+    // 6. DOM-based XSS Example
+    [
+        "id" => "xss-6",
+        "title" => "XSS - DOM Based",
+        "category" => "XSS",
+        "difficulty" => "Intermediate",
+        "snippet" => "<script>
+var msg = location.hash.substring(1);
+document.write(msg);
+</script>",
+        "correct" => "vulnerable",
+        "answer" => "Data from URL hash is written to the DOM without encoding, allowing DOM-based XSS."
+    ],
+
+    // 7. Input in IMG SRC
+    [
+        "id" => "xss-7",
+        "title" => "XSS - IMG SRC Injection",
+        "category" => "XSS",
+        "difficulty" => "Intermediate",
+        "snippet" => "<?php
+\$img = \$_GET['img'];
+echo \"<img src='\$img'>\";
+?>",
+        "correct" => "vulnerable",
+        "answer" => "User-controlled src can include JavaScript pseudo-protocols (e.g., javascript:) for XSS."
+    ],
+
+    // 8. Secure Attribute Encoding
+    [
+        "id" => "xss-8",
+        "title" => "XSS - Safe Attribute",
+        "category" => "XSS",
+        "difficulty" => "Intermediate",
+        "snippet" => "<?php
+\$img = htmlspecialchars(\$_GET['img'], ENT_QUOTES, 'UTF-8');
+echo \"<img src='\$img'>\";
+?>",
+        "correct" => "secure",
+        "answer" => "Input is properly escaped for HTML attributes, preventing XSS."
+    ],
+
+    // 9. Event Handler Injection
+    [
+        "id" => "xss-9",
+        "title" => "XSS - OnClick Injection",
+        "category" => "XSS",
+        "difficulty" => "Advanced",
+        "snippet" => "<?php
+\$btn = \$_GET['btn'];
+echo \"<button onclick='\$btn'>Click me</button>\";
+?>",
+        "correct" => "vulnerable",
+        "answer" => "User-controlled onclick attribute can execute arbitrary JavaScript."
+    ],
+
+    // 10. Secure JS Template
+    [
+        "id" => "xss-10",
+        "title" => "XSS - Safe JS Template",
+        "category" => "XSS",
+        "difficulty" => "Advanced",
+        "snippet" => "<?php
+\$name = json_encode(\$_GET['name']);
+echo \"<script>var user=\$name;</script>\";
+?>",
+        "correct" => "secure",
+        "answer" => "Using json_encode safely outputs user input in JS context, preventing XSS."
     ],
 
 ];
