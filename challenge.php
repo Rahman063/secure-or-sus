@@ -61,7 +61,7 @@ if ($currentIndex !== -1 && isset($challenges[$currentIndex + 1])) {
     .fixed-box pre { margin:0; padding:12px; }
     .correct { color:#2ea043; font-weight:600; }
     .wrong { color:#f85149; font-weight:600; }
-    .explain { color:#c9d1d9; }
+    .explain { color:black; }
     .nav-links { margin-top:18px; display:flex; justify-content:space-between; align-items:center; }
     .next-btn { background:#1f6feb; color:#fff; padding:8px 14px; border-radius:6px; text-decoration:none; }
     .next-btn:hover { background:#388bfd; }
