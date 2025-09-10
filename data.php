@@ -121,4 +121,120 @@ $stmt->bind_param("i", $_GET["id"]);
 $stmt->execute();',
         "explanation" => "Union injection possible. Fixed by using prepared statements."
     ],
+    [
+        "id" => "xss-1",
+        "title" => "XSS - Reflected User Input",
+        "category" => "XSS",
+        "difficulty" => "Beginner",
+        "snippet" => 'echo "Hello, " . $_GET["name"] . "!";',
+        "answer" => "Vulnerable",
+        "fixed_code" => 'echo "Hello, " . htmlspecialchars($_GET["name"], ENT_QUOTES, "UTF-8") . "!";',
+        "explanation" => "Direct output of user input allows script injection. Fixed by escaping output."
+    ],
+    [
+        "id" => "xss-2",
+        "title" => "XSS - Persistent Comment",
+        "category" => "XSS",
+        "difficulty" => "Intermediate",
+        "snippet" => '$comment = $_POST["comment"];
+file_put_contents("comments.txt", $comment . "\n", FILE_APPEND);',
+        "answer" => "Vulnerable",
+        "fixed_code" => '$comment = htmlspecialchars($_POST["comment"], ENT_QUOTES, "UTF-8");
+file_put_contents("comments.txt", $comment . "\n", FILE_APPEND);',
+        "explanation" => "User input stored without sanitization. Fixed by escaping before storage."
+    ],
+    [
+        "id" => "xss-3",
+        "title" => "XSS - DOM-based Injection",
+        "category" => "XSS",
+        "difficulty" => "Intermediate",
+        "snippet" => '<script>
+    document.write("Welcome " + location.hash.substring(1));
+    </script>',
+        "answer" => "Vulnerable",
+        "fixed_code" => '<script>
+    const safeHash = document.createTextNode(location.hash.substring(1));
+    document.body.appendChild(safeHash);
+    </script>',
+        "explanation" => "location.hash directly written to DOM allows attacker input injection. Fixed by using text nodes."
+    ],
+    [
+        "id" => "xss-4",
+        "title" => "XSS - Alert Injection",
+        "category" => "XSS",
+        "difficulty" => "Beginner",
+        "snippet" => 'echo "<div>" . $_GET["message"] . "</div>";',
+        "answer" => "Vulnerable",
+        "fixed_code" => 'echo "<div>" . htmlspecialchars($_GET["message"], ENT_QUOTES, "UTF-8") . "</div>";',
+        "explanation" => "User input directly injected into HTML. Fixed by escaping output."
+    ],
+    [
+        "id" => "xss-5",
+        "title" => "XSS - Unsafe Attribute Injection",
+        "category" => "XSS",
+        "difficulty" => "Intermediate",
+        "snippet" => 'echo "<img src=\'" . $_GET["img"] . "\'>";',
+        "answer" => "Vulnerable",
+        "fixed_code" => 'echo "<img src=\'" . htmlspecialchars($_GET["img"], ENT_QUOTES, "UTF-8") . "\'>";',
+        "explanation" => "Image src attribute unsanitized allows injecting javascript: URLs. Fixed by escaping."
+    ],
+    [
+        "id" => "xss-6",
+        "title" => "XSS - Inline Event Handler",
+        "category" => "XSS",
+        "difficulty" => "Advanced",
+        "snippet" => 'echo "<button onclick=\'' . $_GET["onclick"] . '\'>Click me</button>";',
+        "answer" => "Vulnerable",
+        "fixed_code" => 'echo "<button>Click me</button>";',
+        "explanation" => "User-controlled event handlers are dangerous. Fixed by removing dynamic event attributes."
+    ],
+    [
+        "id" => "xss-7",
+        "title" => "XSS - Unsafe JSON Injection",
+        "category" => "XSS",
+        "difficulty" => "Advanced",
+        "snippet" => 'echo "<script>var data = " . $_GET["data"] . ";</script>";',
+        "answer" => "Vulnerable",
+        "fixed_code" => 'echo "<script>var data = " . json_encode($_GET["data"]) . ";</script>";',
+        "explanation" => "Unescaped user input breaks JavaScript context. Fixed by using json_encode()."
+    ],
+    [
+        "id" => "xss-8",
+        "title" => "XSS - Unsafe innerHTML",
+        "category" => "XSS",
+        "difficulty" => "Intermediate",
+        "snippet" => '<script>
+    document.getElementById("output").innerHTML = location.search.substring(1);
+    </script>',
+        "answer" => "Vulnerable",
+        "fixed_code" => '<script>
+    const text = document.createTextNode(location.search.substring(1));
+    document.getElementById("output").appendChild(text);
+    </script>',
+        "explanation" => "Direct use of innerHTML with user input enables XSS. Fixed by using text nodes."
+    ],
+    [
+        "id" => "xss-9",
+        "title" => "XSS - Unsafe Redirect URL",
+        "category" => "XSS",
+        "difficulty" => "Advanced",
+        "snippet" => 'header("Location: " . $_GET["url"]);',
+        "answer" => "Vulnerable",
+        "fixed_code" => '$allowedUrls = ["https://example.com", "https://example.org"];
+$url = in_array($_GET["url"], $allowedUrls) ? $_GET["url"] : "https://example.com";
+header("Location: " . $url);',
+        "explanation" => "Open redirect allows phishing and XSS via URL parameter. Fixed by whitelisting allowed URLs."
+    ],
+    [
+        "id" => "xss-10",
+        "title" => "XSS - Unsafe HTML Output",
+        "category" => "XSS",
+        "difficulty" => "Beginner",
+        "snippet" => 'echo "<p>" . $_POST["comment"] . "</p>";',
+        "answer" => "Vulnerable",
+        "fixed_code" => 'echo "<p>" . htmlspecialchars($_POST["comment"], ENT_QUOTES, "UTF-8") . "</p>";',
+        "explanation" => "User input rendered directly in HTML allows XSS. Fixed by escaping the input."
+    ],
 ];
+
+$challenges = array_merge($challenges, $xss_challenges);
