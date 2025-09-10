@@ -1,4 +1,4 @@
-<?php
+<!-- <?php
 return [
 
     // ------------------- SQL Injection Challenges -------------------
@@ -294,4 +294,4 @@ echo \"<script>var user=\$name;</script>\";
         "answer" => "Using json_encode safely outputs user input in JS context, preventing XSS."
     ],
 
-];
+]; -->
