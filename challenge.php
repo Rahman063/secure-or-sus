@@ -94,7 +94,7 @@ if ($currentIndex !== -1 && isset($challenges[$currentIndex + 1])) {
   <?php if ($showFixed): ?>
     <div class="fixed-box">
       <h3>🔒 Fixed (Secure) Code</h3>
-      <pre class="snippet"><?= htmlspecialchars($challenge['fixed']) ?></pre>
+      <pre class="snippet"><?= htmlspecialchars($challenge['fixed_code']) ?></pre>
     </div>
   <?php endif; ?>
 
