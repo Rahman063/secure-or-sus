@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // If the ground truth is vulnerable and we have a fix, show it (regardless of user's choice)
-    if ($correct === 'vulnerable' && !empty(trim($challenge['fixed'] ?? ''))) {
+    if ($correct === 'vulnerable' && !empty(trim($challenge['fixed_code'] ?? ''))) {
         $showFixed = true;
     }
 }
