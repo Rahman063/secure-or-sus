@@ -237,4 +237,3 @@ header("Location: " . $url);',
     ],
 ];
 
-$challenges = array_merge($challenges, $xss_challenges);
