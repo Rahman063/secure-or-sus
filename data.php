@@ -8,7 +8,10 @@ $challenges = [
         "difficulty" => "Beginner",
         "snippet" => '$query = "SELECT * FROM users WHERE username=\'" . $_POST[\'username\'] . "\' AND password=\'" . $_POST[\'password\'] . "\'";',
         "answer" => "Vulnerable",
-        "explanation" => "User input is directly concatenated into the SQL query, allowing attackers to inject malicious SQL (e.g., ' OR '1'='1)."
+        "fixed_code" => '$stmt = $conn->prepare("SELECT * FROM users WHERE username=? AND password=?");
+$stmt->bind_param("ss", $_POST["username"], $_POST["password"]);
+$stmt->execute();',
+        "explanation" => "User input was directly concatenated, allowing injection. Fixed by using prepared statements."
     ],
     [
         "id" => "sql-injection-2",
@@ -17,7 +20,10 @@ $challenges = [
         "difficulty" => "Beginner",
         "snippet" => '$query = "SELECT * FROM products WHERE name LIKE \'%" . $_GET[\'search\'] . "%\'";',
         "answer" => "Vulnerable",
-        "explanation" => "Search input is injected directly into SQL query without sanitization, leading to SQL injection risk."
+        "fixed_code" => '$stmt = $conn->prepare("SELECT * FROM products WHERE name LIKE CONCAT(\'%\', ?, \'%\')");
+$stmt->bind_param("s", $_GET["search"]);
+$stmt->execute();',
+        "explanation" => "Search input was directly injected. Fixed by using prepared statements with parameter binding."
     ],
     [
         "id" => "sql-injection-3",
@@ -28,7 +34,8 @@ $challenges = [
 $stmt->bind_param("ss", $_POST["username"], $_POST["password"]);
 $stmt->execute();',
         "answer" => "Secure",
-        "explanation" => "Prepared statements with parameter binding prevent SQL injection by separating code from data."
+        "fixed_code" => "N/A (Already secure)",
+        "explanation" => "Prepared statements prevent SQL injection by separating code from data."
     ],
     [
         "id" => "sql-injection-4",
@@ -37,7 +44,10 @@ $stmt->execute();',
         "difficulty" => "Intermediate",
         "snippet" => '$query = "SELECT * FROM " . $_GET[\'table\'];',
         "answer" => "Vulnerable",
-        "explanation" => "Attacker controls table name → can read arbitrary tables from DB."
+        "fixed_code" => '$allowed_tables = ["users", "products", "orders"];
+$table = in_array($_GET["table"], $allowed_tables) ? $_GET["table"] : "users";
+$query = "SELECT * FROM " . $table;',
+        "explanation" => "Direct table name injection was possible. Fixed by using a whitelist of allowed tables."
     ],
     [
         "id" => "sql-injection-5",
@@ -46,17 +56,21 @@ $stmt->execute();',
         "difficulty" => "Intermediate",
         "snippet" => '$query = "INSERT INTO users (username, password) VALUES (\'" . $_POST[\'username\'] . "\', \'" . $_POST[\'password\'] . "\')";',
         "answer" => "Vulnerable",
-        "explanation" => "User-controlled input directly inserted → attacker can tamper with DB."
+        "fixed_code" => '$stmt = $conn->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
+$stmt->bind_param("ss", $_POST["username"], $_POST["password"]);
+$stmt->execute();',
+        "explanation" => "Direct input inserted into query. Fixed by using parameterized prepared statements."
     ],
     [
         "id" => "sql-injection-6",
         "title" => "SQL Injection - Secure Insert",
         "category" => "SQL Injection",
         "difficulty" => "Intermediate",
-        "snippet" => '$stmt = $conn->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
+        "snippet" => '$stmt = $conn->prepare("INSERT INTO users (username, password) VALUES (?, ?)"); 
 $stmt->bind_param("ss", $_POST["username"], $_POST["password"]);
 $stmt->execute();',
         "answer" => "Secure",
+        "fixed_code" => "N/A (Already secure)",
         "explanation" => "Using parameterized insert prevents injection."
     ],
     [
@@ -66,7 +80,10 @@ $stmt->execute();',
         "difficulty" => "Intermediate",
         "snippet" => '$query = "SELECT * FROM users ORDER BY " . $_GET[\'sort\'];',
         "answer" => "Vulnerable",
-        "explanation" => "ORDER BY parameter is unsanitized → attackers can inject SQL keywords."
+        "fixed_code" => '$allowed_sorts = ["username", "email", "created_at"];
+$sort = in_array($_GET["sort"], $allowed_sorts) ? $_GET["sort"] : "username";
+$query = "SELECT * FROM users ORDER BY " . $sort;',
+        "explanation" => "ORDER BY unsanitized input was used. Fixed by whitelisting allowed sort columns."
     ],
     [
         "id" => "sql-injection-8",
@@ -75,7 +92,10 @@ $stmt->execute();',
         "difficulty" => "Advanced",
         "snippet" => '$query = "SELECT * FROM users WHERE id=" . $_GET[\'id\'] . "; DELETE FROM logs;";',
         "answer" => "Vulnerable",
-        "explanation" => "Chained queries allow destructive operations (e.g., dropping tables)."
+        "fixed_code" => '$stmt = $conn->prepare("SELECT * FROM users WHERE id=?");
+$stmt->bind_param("i", $_GET["id"]);
+$stmt->execute();',
+        "explanation" => "Multiple queries allowed attacker to execute destructive operations. Fixed by using parameterized query without allowing multi-query execution."
     ],
     [
         "id" => "sql-injection-9",
@@ -86,7 +106,8 @@ $stmt->execute();',
 $sort = in_array($_GET["sort"], $allowed) ? $_GET["sort"] : "username";
 $query = "SELECT * FROM users ORDER BY $sort";',
         "answer" => "Secure",
-        "explanation" => "Whitelisting allowed columns prevents malicious ORDER BY injections."
+        "fixed_code" => "N/A (Already secure)",
+        "explanation" => "Whitelisting prevents malicious injections."
     ],
     [
         "id" => "sql-injection-10",
@@ -95,6 +116,9 @@ $query = "SELECT * FROM users ORDER BY $sort";',
         "difficulty" => "Advanced",
         "snippet" => '$query = "SELECT username, password FROM users WHERE id=" . $_GET[\'id\'];',
         "answer" => "Vulnerable",
-        "explanation" => "Attacker can use UNION SELECT to extract sensitive data."
+        "fixed_code" => '$stmt = $conn->prepare("SELECT username, password FROM users WHERE id=?");
+$stmt->bind_param("i", $_GET["id"]);
+$stmt->execute();',
+        "explanation" => "Union injection possible. Fixed by using prepared statements."
     ],
 ];
