@@ -183,7 +183,7 @@ file_put_contents("comments.txt", $comment . "\n", FILE_APPEND);',
         "title" => "XSS - Inline Event Handler",
         "category" => "XSS",
         "difficulty" => "Advanced",
-        "snippet" => 'echo "<button onclick=\'' . $_GET["onclick"] . '\'>Click me</button>";',
+        "snippet" => 'echo "<button onclick=\'' . ($_GET["onclick"] ?? ''). '\'>Click me</button>";',
         "answer" => "Vulnerable",
         "fixed_code" => 'echo "<button>Click me</button>";',
         "explanation" => "User-controlled event handlers are dangerous. Fixed by removing dynamic event attributes."
