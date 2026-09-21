@@ -1,108 +1,602 @@
 <?php
+
 require "data.php";
 
-$id = $_GET['id'] ?? null;
-$challenge = null;
-$currentIndex = -1;
+$id = $_GET["id"] ?? "";
 
-// find current challenge + index (for Next button)
-foreach ($challenges as $i => $c) {
-    if (($c['id'] ?? '') === $id) {
+$challenge = null;
+
+foreach ($challenges as $c) {
+    if ($c["id"] === $id) {
         $challenge = $c;
-        $currentIndex = $i;
         break;
     }
 }
-if (!$challenge) { http_response_code(404); exit("Challenge not found."); }
 
-// handle submission
-$resultHtml = '';
-$showFixed = false;
+if (!$challenge) {
+    http_response_code(404);
+    exit("Challenge not found.");
+}
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $choice = strtolower(trim($_POST['choice'] ?? ''));       // "secure" or "vulnerable" from user
-    $correct = strtolower(trim($challenge['answer'] ?? ''));  // "secure" or "vulnerable" from data.php
-    $reason = trim($_POST['reason'] ?? '');
+$userAnswer = null;
+$reason = "";
+$isCorrect = null;
+$submitted = false;
 
-    if ($choice === $correct) {
-        $resultHtml .= "<p class='correct'>✅ Correct!</p>";
-    } else {
-        $resultHtml .= "<p class='wrong'>❌ Not quite. This snippet is actually <b>" . htmlspecialchars(ucfirst($correct)) . "</b>.</p>";
-    }
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    // Always show the explanation so user learns either way
-    if (!empty($challenge['explanation'])) {
-        $resultHtml .= "<p class='explain'><b>Why:</b> " . htmlspecialchars($challenge['explanation']) . "</p>";
-    }
+    $userAnswer = $_POST["answer"] ?? "";
+    $reason = trim($_POST["reason"] ?? "");
 
-    // If the ground truth is vulnerable and we have a fix, show it (regardless of user's choice)
-    if ($correct === 'vulnerable' && !empty(trim($challenge['fixed_code'] ?? ''))) {
-        $showFixed = true;
+    $submitted = true;
+
+    $isCorrect =
+        strtolower($userAnswer) ===
+        strtolower($challenge["answer"]);
+}
+
+function e($value)
+{
+    return htmlspecialchars(
+        $value ?? "",
+        ENT_QUOTES,
+        "UTF-8"
+    );
+}
+
+$nextChallenge = null;
+$currentIndex = null;
+
+foreach ($challenges as $index => $c) {
+
+    if ($c["id"] === $challenge["id"]) {
+        $currentIndex = $index;
+
+        if (isset($challenges[$index + 1])) {
+            $nextChallenge = $challenges[$index + 1];
+        }
+
+        break;
     }
 }
 
-// find next challenge id
-$nextId = null;
-if ($currentIndex !== -1 && isset($challenges[$currentIndex + 1])) {
-    $nextId = $challenges[$currentIndex + 1]['id'];
-}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <title><?= htmlspecialchars($challenge['title']) ?></title>
-  <link rel="stylesheet" href="assets/style.css">
-  <style>
-    /* tiny safety net if your style.css doesn't have these */
-    .snippet { background:#0d1117; color:#c9d1d9; border:1px solid #30363d; border-radius:8px; padding:12px; overflow:auto; }
-    .fixed-box { margin-top:16px; border:1px solid #30363d; background:#161b22; border-radius:8px; }
-    .fixed-box h3 { margin:0; padding:12px; border-bottom:1px solid #30363d; color:#58a6ff; }
-    .fixed-box pre { margin:0; padding:12px; }
-    .correct { color:#2ea043; font-weight:600; }
-    .wrong { color:#f85149; font-weight:600; }
-    .explain { color:black; }
-    .nav-links { margin-top:18px; display:flex; justify-content:space-between; align-items:center; }
-    .next-btn { background:#1f6feb; color:#fff; padding:8px 14px; border-radius:6px; text-decoration:none; }
-    .next-btn:hover { background:#388bfd; }
-    textarea { width:100%; height:90px; background:#0d1117; color:#e6edf3; border:1px solid #30363d; border-radius:6px; padding:8px; }
-    button { background:#238636; color:#fff; border:none; padding:10px 16px; border-radius:6px; cursor:pointer; }
-    button:hover { background:#2ea043; }
-  </style>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        <?= e($challenge["title"]) ?> | Secure or Sus?
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="assets/style.css"
+    >
+
 </head>
+
 <body>
-  <h2><?= htmlspecialchars($challenge['title']) ?></h2>
-  <p><strong>Category:</strong> <?= htmlspecialchars($challenge['category']) ?>
-     | <strong>Difficulty:</strong> <?= htmlspecialchars($challenge['difficulty']) ?></p>
 
-  <h3>Code Snippet</h3>
-  <pre class="snippet"><?= htmlspecialchars($challenge['snippet']) ?></pre>
+<div class="page-container">
 
-  <form method="post" style="margin-top:12px">
-    <p>Is this code secure or vulnerable?</p>
-    <label><input type="radio" name="choice" value="Secure" required> Secure</label>
-    <label style="margin-left:12px"><input type="radio" name="choice" value="Vulnerable"> Vulnerable</label>
-    <br><br>
-    <textarea name="reason" placeholder="Explain your reasoning (optional, but recommended)..."></textarea><br>
-    <button type="submit">Submit</button>
-  </form>
+    <!-- HEADER -->
 
-  <?php if ($resultHtml): ?>
-    <div style="margin-top:16px"><?= $resultHtml ?></div>
-  <?php endif; ?>
+    <header class="challenge-header">
 
-  <?php if ($showFixed): ?>
-    <div class="fixed-box">
-      <h3>🔒 Fixed (Secure) Code</h3>
-      <pre class="snippet"><?= htmlspecialchars($challenge['fixed_code']) ?></pre>
-    </div>
-  <?php endif; ?>
+        <a
+            href="index.php"
+            class="back-link"
+        >
+            ← Back to Challenges
+        </a>
 
-  <div class="nav-links">
-    <a href="index.php">⬅ Back to Challenges</a>
-    <?php if ($nextId): ?>
-      <a class="next-btn" href="challenge.php?id=<?= htmlspecialchars($nextId) ?>">Next ➡</a>
+        <div class="challenge-title">
+
+            <div class="title-row">
+
+                <h1>
+                    <?= e($challenge["title"]) ?>
+                </h1>
+
+                <span
+                    class="badge <?= strtolower(e($challenge["difficulty"])) ?>"
+                >
+                    <?= e($challenge["difficulty"]) ?>
+                </span>
+
+            </div>
+
+            <div class="challenge-meta">
+
+                <span>
+                    <?= e($challenge["category"]) ?>
+                </span>
+
+                <?php if (!empty($challenge["subcategory"])): ?>
+
+                    <span>•</span>
+
+                    <span>
+                        <?= e($challenge["subcategory"]) ?>
+                    </span>
+
+                <?php endif; ?>
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- BEFORE CODE -->
+
+    <section class="review-section">
+
+        <div class="section-heading">
+
+            <span class="section-number">
+                01
+            </span>
+
+            <div>
+
+                <h2>
+                    Code Before
+                </h2>
+
+                <p>
+                    Review the implementation and identify the security issue.
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="code-card vulnerable-code">
+
+            <div class="code-header">
+
+                <span>
+                    Vulnerable Implementation
+                </span>
+
+                <span class="code-label">
+                    BEFORE
+                </span>
+
+            </div>
+
+            <pre><code><?= e($challenge["snippet"]) ?></code></pre>
+
+        </div>
+
+    </section>
+
+
+    <!-- USER ASSESSMENT -->
+
+    <section class="review-section">
+
+        <div class="section-heading">
+
+            <span class="section-number">
+                02
+            </span>
+
+            <div>
+
+                <h2>
+                    Your Assessment
+                </h2>
+
+                <p>
+                    Decide whether the implementation is secure or vulnerable,
+                    then explain your reasoning.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <?php if (!$submitted): ?>
+
+            <form
+                method="post"
+                class="assessment-form"
+            >
+
+                <div class="answer-options">
+
+                    <label class="answer-option">
+
+                        <input
+                            type="radio"
+                            name="answer"
+                            value="Vulnerable"
+                            required
+                        >
+
+                        <span>
+                            Vulnerable
+                        </span>
+
+                    </label>
+
+
+                    <label class="answer-option">
+
+                        <input
+                            type="radio"
+                            name="answer"
+                            value="Secure"
+                        >
+
+                        <span>
+                            Secure
+                        </span>
+
+                    </label>
+
+                </div>
+
+
+                <label
+                    for="reason"
+                    class="reason-label"
+                >
+                    Why do you think so?
+                </label>
+
+                <textarea
+                    id="reason"
+                    name="reason"
+                    placeholder="Explain the vulnerability or security control..."
+                    required
+                ></textarea>
+
+
+                <button
+                    type="submit"
+                    class="primary-button"
+                >
+                    Submit Assessment
+                </button>
+
+            </form>
+
+        <?php else: ?>
+
+            <div
+                class="result-card <?= $isCorrect ? 'result-correct' : 'result-wrong' ?>"
+            >
+
+                <div class="result-title">
+
+                    <?php if ($isCorrect): ?>
+
+                        ✓ Correct Assessment
+
+                    <?php else: ?>
+
+                        ✗ Incorrect Assessment
+
+                    <?php endif; ?>
+
+                </div>
+
+
+                <div class="result-details">
+
+                    <div>
+
+                        <strong>
+                            Your answer
+                        </strong>
+
+                        <span>
+                            <?= e($userAnswer) ?>
+                        </span>
+
+                    </div>
+
+
+                    <div>
+
+                        <strong>
+                            Correct answer
+                        </strong>
+
+                        <span>
+                            <?= e($challenge["answer"]) ?>
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <?php if ($reason !== ""): ?>
+
+                    <div class="user-reason">
+
+                        <strong>
+                            Your explanation
+                        </strong>
+
+                        <p>
+                            <?= e($reason) ?>
+                        </p>
+
+                    </div>
+
+                <?php endif; ?>
+
+            </div>
+
+        <?php endif; ?>
+
+    </section>
+
+
+    <?php if ($submitted): ?>
+
+
+        <!-- SECURITY ANALYSIS -->
+
+        <section class="review-section">
+
+            <div class="section-heading">
+
+                <span class="section-number">
+                    03
+                </span>
+
+                <div>
+
+                    <h2>
+                        Security Analysis
+                    </h2>
+
+                    <p>
+                        Understand what is happening and why it matters.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="analysis-grid">
+
+                <div class="analysis-card">
+
+                    <span class="analysis-label">
+                        VULNERABILITY
+                    </span>
+
+                    <h3>
+                        <?= e($challenge["subcategory"] ?? $challenge["category"]) ?>
+                    </h3>
+
+                    <p>
+                        <?= e($challenge["explanation"]) ?>
+                    </p>
+
+                </div>
+
+
+                <div class="analysis-card">
+
+                    <span class="analysis-label">
+                        SECURITY IMPACT
+                    </span>
+
+                    <h3>
+                        What could happen?
+                    </h3>
+
+                    <p>
+                        <?= e($challenge["impact"]) ?>
+                    </p>
+
+                </div>
+
+
+                <div class="analysis-card">
+
+                    <span class="analysis-label">
+                        CWE
+                    </span>
+
+                    <h3>
+                        <?= e($challenge["cwe"]) ?>
+                    </h3>
+
+                    <p>
+                        Common Weakness Enumeration classification.
+                    </p>
+
+                </div>
+
+
+                <div class="analysis-card">
+
+                    <span class="analysis-label">
+    OWASP
+</span>
+
+                    <h3>
+                        <?= e($challenge["owasp"]) ?>
+                    </h3>
+
+                    <p>
+                        Relevant OWASP security category.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- AFTER CODE -->
+
+        <section class="review-section">
+
+            <div class="section-heading">
+
+                <span class="section-number">
+                    04
+                </span>
+
+                <div>
+
+                    <h2>
+                        Secure Implementation
+                    </h2>
+
+                    <p>
+                        Compare the vulnerable implementation with the corrected version.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <?php if (!empty($challenge["fixed_code"])): ?>
+
+                <div class="code-card secure-code">
+
+                    <div class="code-header">
+
+                        <span>
+                            Secure Implementation
+                        </span>
+
+                        <span class="code-label">
+                            AFTER
+                        </span>
+
+                    </div>
+
+                    <pre><code><?= e($challenge["fixed_code"]) ?></code></pre>
+
+                </div>
+
+            <?php else: ?>
+
+                <div class="secure-message">
+
+                    ✓ This implementation already follows the expected
+                    security control.
+
+                </div>
+
+            <?php endif; ?>
+
+        </section>
+
+
+        <!-- WHY THE FIX WORKS -->
+
+        <section class="review-section">
+
+            <div class="section-heading">
+
+                <span class="section-number">
+                    05
+                </span>
+
+                <div>
+
+                    <h2>
+                        Why the Fix Works
+                    </h2>
+
+                    <p>
+                        The security principle behind the remediation.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="remediation-card">
+
+                <div class="remediation-icon">
+                    ✓
+                </div>
+
+                <div>
+
+                    <h3>
+                        Recommended Remediation
+                    </h3>
+
+                    <p>
+                        <?= e($challenge["remediation"]) ?>
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- NAVIGATION -->
+
+        <div class="challenge-navigation">
+
+            <a
+                href="index.php"
+                class="secondary-button"
+            >
+                ← All Challenges
+            </a>
+
+
+            <?php if ($nextChallenge): ?>
+
+                <a
+                    href="challenge.php?id=<?= e($nextChallenge["id"]) ?>"
+                    class="next-button"
+                >
+                    Next Challenge →
+                </a>
+
+            <?php else: ?>
+
+                <a
+                    href="index.php"
+                    class="next-button"
+                >
+                    Back to Challenges →
+                </a>
+
+            <?php endif; ?>
+
+        </div>
+
     <?php endif; ?>
-  </div>
+
+</div>
+
 </body>
+
 </html>
